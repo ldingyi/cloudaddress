@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ldingyi.cloudaddress.mapper.ChatMapper">
+    <resultMap id="chat" type="com.ldingyi.cloudaddress.entity.Chat">
+        <id property="id" column="id"/>
+        <result property="message" column="message"/>
+        <result property="receiver" column="receiver"/>
+        <result property="send" column="send"/>
+        <result property="time" column="time"/>
+    </resultMap>
+    <select id="chatList" resultType="com.ldingyi.cloudaddress.entity.Chat">
+        select * from chat where (send = #{send} and receiver =#{receiver}) or(send = #{receiver} and receiver =#{send})   order by time ASC
+    </select>
+    <select id="chats" resultType="com.ldingyi.cloudaddress.entity.Chat">
+        select send,receiver from chat where send=#{phone} or receiver=#{phone} order by time DESC limit 1 group by send
+    </select>
+</mapper>

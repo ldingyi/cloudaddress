@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ldingyi.cloudaddress.mapper.AddressMapper">
+    <resultMap id="address" type="com.ldingyi.cloudaddress.entity.Address">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"/>
+        <result property="clazz" column="Clazz"/>
+        <result property="phone" column="phone"/>
+        <result property="nindex" column="index"/>
+        <result property="uid" column="uid"></result>
+    </resultMap>
+    <select id="listAllAddresses" resultType="com.ldingyi.cloudaddress.entity.Address">
+        select * from address  where uid = #{uid} order by nindex ASC
+    </select>
+    <select id="findNameByPhone" resultType="java.lang.String">
+        select name from address where phone= #{phone}
+    </select>
+</mapper>
