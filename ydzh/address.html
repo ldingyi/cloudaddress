@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <link rel="stylesheet" href="css/detail.css">
+    <script src="./js/pinying.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.2/lib/index.css">
+
+    <!-- 引入 Vue 和 Vant 的 JS 文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.2/lib/vant.min.js"></script>
+    <style>
+
+    </style>
+</head>
+<body>
+
+
+<div data-role="page" id="address" style="overflow: initial !important" >
+    <div data-role="header" style="background: gainsboro" >
+        <h1>云通讯录</h1>
+        <a href="#add" data-icon="plus" class="ui-btn-right" >添加</a>
+    </div>
+
+    <div style="position:-webkit-sticky;position: sticky;z-index:999;top: 0;display: block !important" id="search">
+            <form class="ui-filterable" >
+                <input id="myFilter" data-type="search">
+            </form>
+    </div>
+
+    <div id="list">
+        <van-index-bar :sticky-offset-top="top">
+
+            <div v-for="(item,index) in addressList">
+                <van-index-anchor :index="indexList[index]" ></van-index-anchor>
+
+                    <van-swipe-cell :id="item2.id" v-for="(item2,index2) in addressList" v-if="item2.nindex==indexList[index]" :on-close="onClose">
+                        <a @click="detail(item2.id)" >
+                             <van-cell  :title="item2.name" ></van-cell>
+                        </a>
+                        <template slot="right">
+                            <van-button square type="danger" text="删除" id="swipebutton" ></van-button>
+                        </template>
+                    </van-swipe-cell>
+
+            </div>
+
+
+
+
+
+        </van-index-bar>
+    </div>
+
+
+
+    <script>
+
+        new Vue({
+            el:'#list',
+            data:{
+
+                    top:37.2,
+                    addressList:[],
+                    indexList:[]
+            },
+            mounted(){
+                var me = this;
+                $.ajax({
+                    type:'post',
+                    url:'http://127.0.0.1/address/list',
+                    data:{
+                        uid:sessionStorage.getItem("userId")
+                    },
+                    success:function (result) {
+                        me.addressList=result;
+                        me.addressList.forEach(function (item) {
+                            me.indexList.push(item.nindex);
+                        });
+                        me.indexList=Array.from(new Set(me.indexList));
+
+                    }
+                })
+            },
+            methods: {
+
+                onClose(clickPosition, instance) {
+                    switch (clickPosition) {
+
+                        case 'cell':
+                        case 'outside':
+                            instance.close();
+                            break;
+                        case 'right':
+                            this.delete(instance.$attrs.id)
+                            break;
+                    }
+                },
+
+
+                delete(id) {
+
+
+                    $.ajax({
+                        type: 'post',
+                        url: 'http://127.0.0.1/address/delete',
+                        data: {
+                            id: id
+                        },
+                        success: function (result) {
+                            if (result == true) {
+                                alert("删除成功");
+                                window.location.reload();
+                            }
+                        }
+                    })
+                },
+                detail(id){
+                    $.ajax({
+                        type:'post',
+                        url:'http://127.0.0.1/address/detail',
+                        data:{
+                            id:id
+                        },
+                        success:function (result) {
+                            $("#name").val(result.name);
+                            $("#phone").val(result.phone);
+                            $("#class").val(result.clazz);
+                            sessionStorage.setItem("userDetail",JSON.stringify(result))
+
+                            window.location.href="#detail";
+
+                        }
+                    })
+                }
+
+
+            }
+
+        })
+
+    </script>
+
+
+
+
+
+
+    <div data-role="footer"  data-position="fixed" >
+        <div data-role="navbar" >
+            <ul >
+                <li><a href="#address" data-icon="user" class="ui-btn-active ui-state-persist">通讯录</a></li>
+                <li><a href="#chat" data-icon="mail" >在线短信</a></li>
+                <li><a href="#" data-icon="heart" >个人收藏</a></li>
+
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div data-role="page" id="detail">
+    <div data-role="header">
+        <a href="#address" class="ui-btn ui-icon-home ui-btn-icon-left">主页</a>
+        <h1>联系人</h1>
+        <a href="#" class="ui-btn ui-icon-edit ui-btn-icon-left" onclick="edit()">编辑</a>
+    </div>
+    <div style="background: url('./img/photo.png') no-repeat; height: 64px;width: 64px; margin:0 auto"></div>
+    <h2 class="detailName" style="margin-bottom: 10px">刘定一</h2>
+    <div class="icon">
+        <button style="background: url('./img/message.png') no-repeat;height: 48px;width: 48px;display: inline-block;padding:0 5px" onclick="chat()"></button>
+        <button style="background: url('./img/phone.png') no-repeat;height: 48px;width: 48px;display: inline-block;padding:0 5px" onclick="dail()"></button>
+
+
+    </div>
+    <div class="information">
+
+        <label for="name">姓名:</label>
+        <input type="text" name="name" id="name" readonly>
+        <label for="phone">电话:</label>
+        <input type="text" name="phone" id="phone" readonly>
+        <label for="class">分类</label>
+        <input type="text" name="class" id="class" readonly>
+    </div>
+
+
+
+    <div data-role="footer"  data-position="fixed" >
+        <div data-role="navbar" >
+            <ul >
+                <li><a href="#address" data-icon="user" class="ui-btn-active ui-state-persist">通讯录</a></li>
+                <li><a href="#chat" data-icon="mail" >在线短信</a></li>
+                <li><a href="#" data-icon="heart" >个人收藏</a></li>
+
+            </ul>
+        </div>
+    </div>
+    <script>
+        function edit() {
+            $("#name").removeAttr("readonly");
+            $("#phone").removeAttr("readonly");
+            $("#class").removeAttr("readonly");
+        }
+
+        function dail() {
+            window.location.href="tel://"+ $("#phone").val();
+        }
+        function chat() {
+
+            window.location.href="chatPage.html";
+        }
+
+
+
+    </script>
+
+
+
+</div>
+
+
+
+<div data-role="page" id="add">
+    <div data-role="header">
+        <a href="#address" class="ui-btn ui-icon-back ui-btn-icon-left">返回</a>
+        <h1>添加新联系人</h1>
+        <a href="#" class="ui-btn ui-icon-edit ui-btn-icon-left" onclick="save()">保存</a>
+    </div>
+
+    <div class="information">
+        <label for="name">姓名:</label>
+        <input type="text" name="name" id="addName" >
+        <label for="phone">电话:</label>
+        <input type="text" name="phone" id="addPhone" >
+        <label for="class">分类</label>
+        <input type="text" name="clazz" id="addClazz">
+    </div>
+
+
+
+    <script>
+
+        function query(){
+            var str = document.getElementById("addName").value.trim();
+            if(str == "") return;
+            var arrRslt = makePy(str);
+
+            return arrRslt[0].substring(0,1);
+
+
+
+        }
+        function save() {
+            var name = $("#addName").val();
+            var phone = $("#addPhone").val();
+            var clazz = $("#addClazz").val();
+
+            var nindex = query();
+
+            $.ajax({
+                type:'post',
+                url:'http://127.0.0.1/address/add',
+                data:{
+                    name:name,
+                    phone:phone,
+                    clazz:clazz,
+                    nindex:nindex,
+                    uid:sessionStorage.getItem("userId")
+                },
+                success:function (result) {
+                    if (result==true){
+                        alert("添加成功");
+                        window.location.href="#address";
+                        window.location.reload();
+                    }
+                }
+            })
+        }
+    </script>
+</div>
+
+
+
+<div data-role="page" id="chat">
+    <div data-role="header" style="background: gainsboro" data-position="fixed">
+        <h1>在线短信</h1>
+        <a href="#address" data-icon="back" class="ui-btn-left" >返回</a>
+    </div>
+    <ul data-role="listview" id="chatsList">
+        <li>
+            <a href="#">
+                <h2>10086</h2>
+                <p>您的余额还剩........。</p>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+                <h2>腾讯云</h2>
+                <p>您的备案号已经通过审核</p>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+                <h2>马龙</h2>
+                <p>听说你打球打得不错，来两句？</p>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+                <h2>扯淡</h2>
+                <p>你可能想为什么这个一个版块那么的扯淡</p>
+            </a>
+        </li>
+        <li>
+            <a href="#">
+                <h2>解释</h2>
+                <p>原因很简单，就是因为这个筛选我做不了，我太垃圾了，SQL没怎么练过</p>
+            </a>
+        </li>
+
+
+
+
+    </ul>
+    <div data-role="footer"  data-position="fixed" >
+        <div data-role="navbar" >
+            <ul >
+                <li><a href="#address" data-icon="user" >通讯录</a></li>
+                <li><a href="#chat" data-icon="mail" class="ui-btn-active ui-state-persist">在线短信</a></li>
+                <li><a href="#" data-icon="heart" >个人收藏</a></li>
+
+            </ul>
+        </div>
+    </div>
+
+    <script>
+
+    </script>
+</div>
+
+
+
+
+
+
+
+
+</body>
+
+<script>
+    var ws;
+    var phone;
+    var target  = "ws://127.0.0.1/socket/chat/";
+    $(function () {
+
+
+
+        phone= sessionStorage.getItem("myPhone");
+        target=target+phone;
+
+        connect();
+
+    })
+
+
+    function connect() {
+        if ('WebSocket' in window) {
+            ws = new WebSocket(target);
+        } else if ('MozWebSocket' in window) {
+            ws = new MozWebSocket(target);
+        } else {
+            alert('WebSocket is not supported by this browser.');
+            return;
+        }
+        ws.onmessage = function (event) {
+            alert("你有一条新消息")
+        }
+
+        ws.close = function () {
+
+        }
+    }
+
+
+
+</script>
+</html>

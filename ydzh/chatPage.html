@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <link rel="stylesheet" href="css/detail.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.2/lib/index.css">
+
+    <!-- 引入 Vue 和 Vant 的 JS 文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.2/lib/vant.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./plugin/chatlist/font_Icon/iconfont.css">
+    <link rel="stylesheet" type="text/css" href="./plugin/chatlist/css/chat.css">
+</head>
+<body>
+<div data-role="page" id="chatPage">
+    <div data-role="header" style="background: gainsboro" data-position="fixed">
+        <h1>在线短信</h1>
+
+    </div>
+
+    <div class="chatBox-content">
+        <div class="chatBox-content-demo" id="chatBox-content-demo">
+
+
+
+        </div>
+    </div>
+
+
+
+    <div data-role="footer" data-position="fixed">
+        <form id="form">
+            <input id="message">
+        </form>
+
+    </div>
+
+
+
+
+
+    <script>
+        var ws;
+        var phone;
+        var target  = "ws://127.0.0.1//socket/chat/";
+
+
+
+
+
+
+        $('#form').on('submit', function(e){
+
+            send();
+            return false;
+        });
+
+
+
+        //      发送信息
+
+
+
+            function send() {
+                var textContent = $("#message").val();
+
+
+                if (textContent != "") {
+                    $(".chatBox-content-demo").append("<div class=\"clearfloat\">" +
+                        "<div class=\"author-name\"><small class=\"chat-date\">"+new Date(+new Date()+8*3600*1000).toISOString().replace(/T/g,' ').replace(/\\.[\\d]{3}Z/,'')+"</small> </div> " +
+                        "<div class=\"right\"> <div class=\"chat-message\"> " + textContent + " </div> " +" </div>");
+                    //发送后清空输入框
+                    $("#message").val("");
+                    //聊天框默认最底部
+                    $(document).ready(function () {
+                        window.scrollTo(0, document.getElementById('chatBox-content-demo').scrollHeight);
+                    });
+
+
+                    var chat={
+                        send:JSON.parse(sessionStorage.getItem("myPhone")),
+                        receiver:JSON.parse(sessionStorage.getItem("userDetail")).phone,
+                        message:textContent
+
+                    };
+
+
+
+                    $.ajax({
+                        type:'post',
+                        url:'http://127.0.0.1/chat/send',
+                        data:{
+                            chatJSON:JSON.stringify(chat)
+                        },
+
+                    })
+                    echo(chat);
+
+
+
+                }
+
+
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+        $(function () {
+
+
+
+            phone = sessionStorage.getItem("myPhone")
+            target=target +phone ;
+            connect();
+
+            //document.getElementById('chatBox-content-demo').addEventListener('scroll', () => console.log("fuck"));
+
+
+            $.ajax({
+                type: 'post',
+                url:'http://localhost/chat/listChat',
+                data: {
+                    send:sessionStorage.getItem("myPhone"),
+                    receiver:JSON.parse(sessionStorage.getItem("userDetail")).phone
+                },
+                success:function (result) {
+
+                    result.forEach(function (item) {
+                        if (item.send==sessionStorage.getItem("myPhone")){
+                            $(".chatBox-content-demo").append("<div class=\"clearfloat\">" +
+                                "<div class=\"author-name\"><small class=\"chat-date\">"+item.time+"</small> </div> " +
+                                "<div class=\"right\"> <div class=\"chat-message\"> " + item.message + " </div> " +" </div>");
+                        }else {
+                            $(".chatBox-content-demo").append("<div class=\"clearfloat\">" +
+                                "<div class=\"author-name\"><small class=\"chat-date\">"+item.time+"</small> </div> " +
+                                "<div class=\"left\"> <div class=\"chat-message\"> " + item.message + " </div> " +" </div>");
+                        }
+                    })
+
+                    setTimeout(() => window.scrollTo(0, document.getElementById('chatBox-content-demo').scrollHeight),500);
+
+                }
+            })
+
+
+
+
+
+
+
+
+
+        })
+
+
+        function connect() {
+            if ('WebSocket' in window) {
+                ws = new WebSocket(target);
+            } else if ('MozWebSocket' in window) {
+                ws = new MozWebSocket(target);
+            } else {
+                alert('WebSocket is not supported by this browser.');
+                return;
+            }
+            ws.onmessage = function (event) {
+
+                $(".chatBox-content-demo").append("<div class=\"clearfloat\">" +
+                    "<div class=\"author-name\"><small class=\"chat-date\">"+new Date(+new Date()+8*3600*1000).toISOString().replace(/T/g,' ').replace(/\\.[\\d]{3}Z/,'')+"</small> </div> " +
+                    "<div class=\"left\"> <div class=\"chat-message\"> " + event.data + " </div> " +" </div>");
+
+
+
+                window.scrollTo(0, document.getElementById('chatBox-content-demo').scrollHeight);
+
+
+            }
+
+            ws.close = function () {
+
+            }
+        }
+
+        function echo(data) {
+
+
+            ws.send(JSON.stringify(data));//send方法向服务器发送消息
+        }
+
+
+
+    </script>
+</div>
+
+
+
+
+</body>
+</html>

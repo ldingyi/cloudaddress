@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+
+</head>
+<body>
+<div data-role="page" id="login">
+    <div data-role="header">
+        <a href="#login" class="ui-btn ui-icon-home ui-btn-icon-left">登录</a>
+        <h1>登录</h1>
+        <a href="#regist" class="ui-btn ui-icon-search ui-btn-icon-left">注册</a>
+    </div>
+    <div class="ui-field-contain">
+        <label for="phone">电话:</label>
+        <input type="text" id="phone">
+
+        <label for="password">密码:</label>
+        <input type="password" id="password">
+        <button onclick="login()"> 登录</button>
+
+    </div>
+
+
+
+    <script>
+        function login() {
+            $.ajax({
+                type:'post',
+                url:'http://127.0.0.1/user/login',
+                data:{
+                    phone:$("#phone").val(),
+                    password:$("#password").val()
+                },
+                success:function (result) {
+                        if (result=="false"){
+                            alert("密码错误");
+                        } else{
+                            sessionStorage.setItem("userId",result.id);
+                            sessionStorage.setItem("myPhone",result.phone);
+                            window.location.href="address.html";
+                        }
+
+
+
+                }
+
+            })
+        }
+    </script>
+
+</div>
+<div data-role="page" id="regist">
+    <div data-role="header">
+        <a href="#login" class="ui-btn ui-icon-home ui-btn-icon-left">登录</a>
+        <h1>注册</h1>
+        <a href="#regist" class="ui-btn ui-icon-search ui-btn-icon-left">注册</a>
+    </div>
+    <div class="ui-field-contain">
+        <label for="phone">电话:</label>
+        <input type="text" id="rphone">
+
+        <label for="password">密码:</label>
+        <input type="password" id="rpassword">
+        <button onclick="regist()">注册</button>
+
+    </div>
+    
+    
+    <script>
+        function regist() {
+            $.ajax({
+                type: 'post',
+                url:'http://127.0.0.1/user/regist',
+                data: {
+                    phone: $("#rphone").val(),
+                    password:$("#rpassword").val()
+                },
+                success:function (result) {
+                    if (result){
+                        alert("注册成功");
+                        window.location.href="#login";
+                    } else{
+                        alert("您已经注册过了");
+                    }
+                }
+                
+            })
+        }
+    </script>
+</div>
+
+
+</body>
+</html>
